@@ -1,14 +1,13 @@
 "use client";
 
 import { ProvaForm, FormValues } from "@/components/ProvaForm";
-import { createProva } from "../actions";
+import { updateProva } from "@/app/actions";
 import { useRouter } from "next/navigation";
 
-export default function CriarProva() {
+export function EditProvaClient({ id, defaultValues }: { id: number, defaultValues: any }) {
   const router = useRouter();
 
   const handleSubmit = async (data: FormValues) => {
-    // Adapter options
     const payload = {
         ...data,
         questions: data.questions.map(q => ({
@@ -17,15 +16,16 @@ export default function CriarProva() {
         }))
     };
     
-    await createProva(payload);
-    router.push("/provas");
+    await updateProva(id, payload);
+    router.push(`/provas/${id}`);
   };
 
   return (
     <ProvaForm
-      title="Criar Nova Prova"
-      description="Adicione os detalhes da prova e suas questões."
-      submitLabel="Salvar Prova"
+      title="Editar Prova"
+      description="Faça as alterações necessárias na sua prova."
+      submitLabel="Salvar Alterações"
+      defaultValues={defaultValues}
       onSubmitAction={handleSubmit}
     />
   );

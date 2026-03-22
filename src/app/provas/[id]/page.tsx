@@ -3,7 +3,7 @@ import { provas, questions } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, CheckCircle2 } from "lucide-react";
+import { ChevronLeft, CheckCircle2, Pencil } from "lucide-react";
 
 export default async function ProvaDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -40,10 +40,19 @@ export default async function ProvaDetailsPage({ params }: { params: Promise<{ i
         {prova.description && (
           <p className="text-xl text-muted-foreground">{prova.description}</p>
         )}
-        <div className="mt-6 flex items-center text-sm text-muted-foreground">
+        <div className="flex items-center space-x-4 mt-6">
+          <Link
+            href={`/provas/${prova.id}/editar`}
+            className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-secondary text-secondary-foreground shadow hover:bg-secondary/80 h-10 px-4 py-2"
+          >
+            <Pencil className="mr-2 h-4 w-4" />
+            Editar Prova
+          </Link>
+          <div className="flex items-center text-sm text-muted-foreground">
           Criada em {new Date(prova.createdAt).toLocaleDateString("pt-BR")}
           <span className="mx-2">•</span>
           {provaQuestions.length} {provaQuestions.length === 1 ? 'questão' : 'questões'}
+          </div>
         </div>
       </div>
 

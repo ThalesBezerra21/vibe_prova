@@ -20,7 +20,7 @@ export async function createProva(formData: {
 
   const provaId = result[0].id;
 
-  const questionsToInsert = formData.questions.map((q) => ({
+  const questionsToInsert = formData.questions.map(({ id, ...q }: any) => ({
     ...q,
     provaId,
   }));
@@ -38,4 +38,37 @@ export async function deleteProva(provaId: number) {
   await db.delete(provas).where(eq(provas.id, provaId));
   revalidatePath("/provas");
   return { success: true };
+}
+
+export async function updateProva(provaId: number, formData: {
+  title: string;
+  description: string;
+  questions: {
+    enunciado: string;
+    options: { id: string; text: string }[];
+    correctOptionId: string;
+  }[];
+}) {
+  const { eq } = await import("drizzle-orm");
+
+  await db.update(provas).set({
+    title: formData.title,
+    description: formData.description,
+  }).where(eq(provas.id, provaId));
+
+  // For simplicity: delete existing questions and recreate
+  await db.delete(questions).where(eq(questions.provaId, provaId));
+
+  const questionsToInsert = formData.questions.map(({ id, ...q }: any) => ({
+    ...q,
+    provaId,
+  }));
+
+  if (questionsToInsert.length > 0) {
+    await db.insert(questions).values(questionsToInsert);
+  }
+
+  revalidatePath(`/provas/${provaId}`);
+  revalidatePath("/provas");
+  return { success: true, provaId };
 }
