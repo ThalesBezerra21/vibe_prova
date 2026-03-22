@@ -5,9 +5,16 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, CheckCircle2 } from "lucide-react";
 
-export default async function ProvaDetailsPage({ params }: { params: { id: string } }) {
+export default async function ProvaDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const provaId = parseInt(id, 10);
+
+  if (isNaN(provaId)) {
+    notFound();
+  }
+
   const prova = await db.query.provas.findFirst({
-    where: eq(provas.id, parseInt(params.id)),
+    where: eq(provas.id, provaId),
   });
 
   if (!prova) {
