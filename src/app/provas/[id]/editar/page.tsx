@@ -28,6 +28,7 @@ export default async function EditarProva({ params }: { params: Promise<{ id: st
   const provaQuestionsList = await db
     .select({
       id: questions.id,
+      type: questions.type,
       enunciado: questions.enunciado,
       options: questions.options,
       correctOptionId: questions.correctOptionId,
@@ -46,6 +47,7 @@ export default async function EditarProva({ params }: { params: Promise<{ id: st
     
     return {
       id: q.id,
+      type: q.type,
       enunciado: q.enunciado,
       options: parsedOptions.map(opt => ({ uid: opt.id, text: opt.text })),
       correctOptionId: q.correctOptionId,

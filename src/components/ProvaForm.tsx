@@ -1,277 +1,185 @@
 "use client";
 
-import { useForm, useFieldArray, Controller } from "react-hook-form";
-import { useTransition } from "react";
-import { BookmarkPlus } from "lucide-react";
+import { useForm, useFieldArray } from "react-hook-form";
+import { BookmarkPlus, Plus, Save, AlertCircle } from "lucide-react";
+import { generateId } from "@/lib/utils";
 import { QuestionPicker } from "./QuestionPicker";
-import { Plus, Trash2, Save, X, AlertCircle } from "lucide-react";
+import { QuestionEditor } from "./QuestionEditor";
 
-export type FormValues = {
+export interface QuestionLocal {
+  id?: number;
+  type: 'single_choice'|'multiple_choice'|'sum_choice';
+  enunciado: string;
+  options: { uid: string; text: string }[];
+  correctOptionId: string;
+}
+
+export interface FormValues {
   title: string;
   description: string;
-  questions: {
-    enunciado: string;
-    options: { uid: string; text: string }[];
-    correctOptionId: string;
-  }[];
-};
+  questions: QuestionLocal[];
+}
 
-const generateId = () => Math.random().toString(36).substring(2, 9);
+interface ProvaFormProps {
+  title: string;
+  description: string;
+  submitLabel: string;
+  defaultValues?: Partial<FormValues>;
+  onSubmitAction: (data: FormValues) => Promise<void>;
+}
 
-function QuestionField({ questionIndex, control, register, errors, removeQuestion, clearErrors }: any) {
-  const { fields: options, append: appendOption, remove: removeOption } = useFieldArray({
+export function ProvaForm({
+  title,
+  description,
+  submitLabel,
+  defaultValues,
+  onSubmitAction,
+}: ProvaFormProps) {
+  const {
+    register,
     control,
-    name: `questions.${questionIndex}.options`,
+    handleSubmit,
+    setError,
+    clearErrors,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<FormValues>({
+    defaultValues: defaultValues || {
+      title: "",
+      description: "",
+      questions: [
+        {
+          type: "single_choice",
+          enunciado: "",
+          options: [
+            { uid: generateId(), text: "" },
+            { uid: generateId(), text: "" },
+          ],
+          correctOptionId: "",
+        },
+      ],
+    },
   });
 
-  const questionError = errors?.questions?.[questionIndex]?.root?.message;
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "questions",
+  });
+
+  const formError = errors.root?.message;
 
   const handleInputChange = () => {
-    if (questionError) {
-      clearErrors(`questions.${questionIndex}.root`);
+    if (formError) clearErrors("root");
+  };
+
+  const onSubmit = async (data: FormValues) => {
+    try {
+      if (data.questions.length === 0) {
+        setError("root", {
+          type: "manual",
+          message: "A prova deve ter pelo menos uma questão.",
+        });
+        return;
+      }
+
+      for (let i = 0; i < data.questions.length; i++) {
+        const q = data.questions[i];
+        const validOptions = q.options.filter(opt => opt.text.trim() !== "");
+        
+        if (validOptions.length < 2) {
+          setError(`questions.${i}.enunciado`, {
+            type: "manual",
+            message: "Preencha o texto de pelo menos 2 alternativas.",
+          });
+          return;
+        }
+
+        if (!q.correctOptionId || q.correctOptionId.trim() === "") {
+          setError(`questions.${i}.correctOptionId`, {
+             type: "manual",
+             message: "Selecione a(s) alternativa(s) correta(s)."
+          });
+          return;
+        }
+
+        // Se multiple/sum choice, pode ter mais de um. Senão 1.
+        // Já verificamos se pelo menos tem algum não nulo acima
+      }
+
+      await onSubmitAction(data);
+    } catch (err) {
+      setError("root", {
+        type: "manual",
+        message: "Ocorreu um erro ao salvar a prova. Tente novamente.",
+      });
     }
   };
 
   return (
-    <div className={`p-6 border rounded-lg bg-card text-card-foreground relative space-y-4 shadow-sm transition-colors ${questionError ? "border-destructive/50" : ""}`}>
-      <div className="flex justify-between items-center">
-        <h3 className="font-medium">Questão {questionIndex + 1}</h3>
-        <button 
-          type="button" 
-          onClick={() => removeQuestion(questionIndex)}
-          className="text-destructive hover:bg-destructive/10 p-2 rounded-md transition-colors"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
-      </div>
-
-      {questionError && (
-        <div className="flex items-center text-sm font-medium text-destructive bg-destructive/10 p-3 rounded-md">
-          <AlertCircle className="w-4 h-4 mr-2" />
-          {questionError}
-        </div>
-      )}
-
+    <div className="max-w-4xl mx-auto space-y-8 pb-20">
       <div>
-        <label className="text-sm font-medium">Enunciado *</label>
-        <textarea 
-          {...register(`questions.${questionIndex}.enunciado`, { required: "Enunciado é obrigatório" })}
-          onChange={(e) => {
-            register(`questions.${questionIndex}.enunciado`).onChange(e);
-            handleInputChange();
-          }}
-          className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1"
-          placeholder="Qual é a capital do Brasil?"
-        />
-        {errors?.questions?.[questionIndex]?.enunciado && <span className="text-destructive text-sm mt-1">{errors.questions[questionIndex].enunciado.message}</span>}
+        <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-4">{title}</h1>
+        <p className="text-xl text-muted-foreground">{description}</p>
       </div>
 
-      <div className="space-y-3">
-        <label className="text-sm font-medium">Alternativas * (Mín. 2 preenchidas)</label>
-        {options.map((option: any, optIndex) => (
-          <div key={option.id} className="flex items-center gap-2">
-            <Controller
-              name={`questions.${questionIndex}.correctOptionId`}
-              control={control}
-              render={({ field }) => (
-                <input 
-                  type="radio" 
-                  value={option.uid}
-                  checked={field.value === option.uid}
-                  onChange={() => {
-                    field.onChange(option.uid);
-                    handleInputChange();
-                    if (errors?.questions?.[questionIndex]?.correctOptionId) {
-                      clearErrors(`questions.${questionIndex}.correctOptionId`);
-                    }
-                  }}
-                  className="w-4 h-4 text-primary focus:ring-primary"
-                />
-              )}
-            />
-            <div className="flex-1 relative">
-              <input 
-                {...register(`questions.${questionIndex}.options.${optIndex}.text`)}
-                onChange={(e) => {
-                  register(`questions.${questionIndex}.options.${optIndex}.text`).onChange(e);
-                  handleInputChange();
-                }}
-                className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                placeholder={`Alternativa ${optIndex + 1}`}
-              />
-              <input type="hidden" {...register(`questions.${questionIndex}.options.${optIndex}.uid`)} defaultValue={option.uid} />
-            </div>
-            {options.length > 2 && (
-              <button 
-                type="button" 
-                onClick={() => {
-                  removeOption(optIndex);
-                  handleInputChange();
-                }}
-                className="text-muted-foreground hover:text-destructive p-2 rounded-md transition-colors"
-                title="Remover alternativa"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-12">
+        {formError && (
+          <div className="flex items-center text-sm font-medium text-destructive bg-destructive/10 p-4 rounded-md">
+            <AlertCircle className="w-5 h-5 mr-3" />
+            {formError}
           </div>
-        ))}
-        {errors?.questions?.[questionIndex]?.correctOptionId && (
-            <span className="flex items-center text-destructive text-sm mt-1 font-medium">
-              <AlertCircle className="w-3.5 h-3.5 mr-1" />
-              {errors.questions[questionIndex].correctOptionId.message}
-            </span>
         )}
-        
-        <button
-          type="button"
-          onClick={() => {
-            appendOption({ uid: generateId(), text: "" });
-            handleInputChange();
-          }}
-          className="text-sm text-primary hover:underline font-medium inline-flex items-center"
-        >
-          <Plus className="w-3 h-3 mr-1" /> Adicionar Alternativa
-        </button>
-      </div>
-    </div>
-  );
-}
 
-export function ProvaForm({ 
-  defaultValues, 
-  onSubmitAction, 
-  title, 
-  description,
-  submitLabel = "Salvar Prova"
-}: { 
-  defaultValues?: Partial<FormValues>, 
-  onSubmitAction: (data: FormValues) => Promise<void>,
-  title: string,
-  description: string,
-  submitLabel?: string
-}) {
-  const [isPending, startTransition] = useTransition();
+        <div className="space-y-6">
+          <div className="space-y-4 p-6 border rounded-xl bg-card shadow-sm">
+            <div>
+              <label htmlFor="title" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                Título da Prova *
+              </label>
+              <input
+                id="title"
+                {...register("title", { required: "Título é obrigatório" })}
+                onChange={(e) => {
+                  register("title").onChange(e);
+                  handleInputChange();
+                }}
+                className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-2"
+                placeholder="Ex: Prova de Matemática - 1º Bimestre"
+              />
+              {errors.title && <span className="text-destructive text-sm mt-1">{errors.title.message}</span>}
+            </div>
 
-  const fallbackDefaultValues: FormValues = {
-    title: "",
-    description: "",
-    questions: [
-      { 
-        enunciado: "", 
-        options: [
-          { uid: generateId(), text: "" },
-          { uid: generateId(), text: "" },
-        ],
-        correctOptionId: "",
-      }
-    ]
-  };
-
-  const { register, control, handleSubmit, setError, clearErrors, formState: { errors } } = useForm<FormValues>({
-    defaultValues: defaultValues || fallbackDefaultValues
-  });
-
-  const { fields, append, remove } = useFieldArray({
-    name: "questions",
-    control
-  });
-
-  const onSubmit = (data: FormValues) => {
-    let hasError = false;
-    clearErrors();
-
-    const cleanedQuestions = data.questions.map((q, qIndex) => {
-      const filledOptions = q.options.filter((opt) => opt.text && opt.text.trim() !== "");
-
-      if (filledOptions.length < 2) {
-        setError(`questions.${qIndex}.root` as any, { 
-          type: "manual", 
-          message: "Preencha o texto de pelo menos 2 alternativas." 
-        });
-        hasError = true;
-      }
-
-      if (!q.correctOptionId) {
-        setError(`questions.${qIndex}.correctOptionId`, { 
-          type: "manual", 
-          message: "Selecione qual é a alternativa correta marcando a bolinha." 
-        });
-        hasError = true;
-      } else {
-        const selectedOpt = q.options.find(o => o.uid === q.correctOptionId);
-        if (!selectedOpt || !selectedOpt.text || selectedOpt.text.trim() === "") {
-          setError(`questions.${qIndex}.correctOptionId`, { 
-            type: "manual", 
-            message: "A alternativa selecionada como correta não pode estar em branco." 
-          });
-          hasError = true;
-        }
-      }
-
-      return {
-        ...q,
-        options: filledOptions,
-      };
-    });
-
-    if (hasError) return;
-
-    const cleanedData = { ...data, questions: cleanedQuestions };
-
-    startTransition(async () => {
-      try {
-        await onSubmitAction(cleanedData);
-      } catch (error) {
-        console.error(error);
-        alert("Erro ao processo prova");
-      }
-    });
-  };
-
-  return (
-    <div className="max-w-3xl mx-auto space-y-8 pb-12">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
-        <p className="text-muted-foreground">{description}</p>
-      </div>
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-        <div className="space-y-4 bg-card text-card-foreground p-6 rounded-lg border shadow-sm">
-          <div>
-            <label className="text-sm font-medium">Título da Prova *</label>
-            <input 
-              {...register("title", { required: "Título é obrigatório" })} 
-              className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1"
-              placeholder="Ex: Prova de Matemática - 1º Bimestre"
-            />
-            {errors.title && <span className="text-destructive text-sm mt-1">{errors.title.message}</span>}
-          </div>
-
-          <div>
-            <label className="text-sm font-medium">Descrição</label>
-            <textarea 
-              {...register("description")} 
-              className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1"
-              placeholder="Instruções e detalhes adicionais..."
-            />
+            <div>
+              <label htmlFor="description" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                Descrição (opcional)
+              </label>
+              <textarea
+                id="description"
+                {...register("description")}
+                className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-2"
+                placeholder="Ex: Instruções para os alunos..."
+              />
+            </div>
           </div>
         </div>
 
         <div className="space-y-6">
-          <h2 className="text-xl font-semibold">Questões</h2>
-          
-          {fields.map((field, index) => (
-            <QuestionField
-              key={field.id}
-              questionIndex={index}
-              control={control}
-              register={register}
-              errors={errors}
-              removeQuestion={remove}
-              clearErrors={clearErrors}
-            />
-          ))}
+          <h2 className="text-2xl font-semibold tracking-tight border-b pb-4">Questões</h2>
+
+          <div className="space-y-8">
+            {fields.map((field, index) => (
+              <QuestionEditor 
+                key={field.id}
+                questionIndex={index}
+                control={control}
+                register={register}
+                errors={errors}
+                removeQuestion={remove}
+                clearErrors={clearErrors}
+                watch={watch}
+              />
+            ))}
+          </div>
 
           <div className="flex gap-4">
             <button 
@@ -280,6 +188,7 @@ export function ProvaForm({
                 const opt1 = generateId();
                 const opt2 = generateId();
                 append({ 
+                  type: "single_choice",
                   enunciado: "", 
                   options: [{ uid: opt1, text: "" }, { uid: opt2, text: "" }],
                   correctOptionId: ""
@@ -297,12 +206,12 @@ export function ProvaForm({
         <div className="flex justify-end p-4 bg-background/95 backdrop-blur border-t sticky bottom-0 -mx-4 md:rounded-b-lg z-20">
           <button 
             type="submit" 
-            disabled={isPending}
+            disabled={isSubmitting}
             className="flex items-center bg-primary text-primary-foreground h-11 px-8 rounded-md font-medium hover:bg-primary/90 disabled:opacity-70 transition-colors"
           >
-            {isPending ? "Processando..." : (
+            {isSubmitting ? "Processando..." : (
               <>
-                <Save className="w-4 h-4 mr-2" />
+                <Save className="w-5 h-5 mr-2" />
                 {submitLabel}
               </>
             )}

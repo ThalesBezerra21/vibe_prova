@@ -33,6 +33,7 @@ export default async function EditarQuestao({ params }: { params: Promise<{ id: 
   }
 
   const defaultValues = {
+    type: q.type,
     enunciado: q.enunciado,
     options: parsedOptions.map(opt => ({ uid: opt.id, text: opt.text })),
     correctOptionId: q.correctOptionId,

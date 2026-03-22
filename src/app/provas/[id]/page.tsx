@@ -24,6 +24,7 @@ export default async function ProvaDetailsPage({ params }: { params: Promise<{ i
   const provaQuestionsList = await db
     .select({
       id: questions.id,
+      type: questions.type,
       enunciado: questions.enunciado,
       options: questions.options,
       correctOptionId: questions.correctOptionId,
@@ -71,10 +72,21 @@ export default async function ProvaDetailsPage({ params }: { params: Promise<{ i
               {q.enunciado}
             </h3>
 
+            {q.type === 'sum_choice' && (() => {
+              const sum = q.options.reduce((acc, opt, optIdx) => {
+                 return q.correctOptionId.split(',').includes(opt.id as string) ? acc + Math.pow(2, optIdx) : acc;
+              }, 0);
+              return (
+                <div className="mb-4 text-sm font-medium text-muted-foreground bg-muted/30 p-3 rounded-lg border inline-block">Soma Correta: <span className="text-foreground font-bold">{sum}</span></div>
+              )
+            })()}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {q.options.map((opt, optIndex) => {
-                const isCorrect = q.correctOptionId === opt.id;
-                const letter = String.fromCharCode(65 + optIndex);
+                const isCorrect = q.correctOptionId.split(',').includes(opt.id as string);
+                const letter = q.type === 'sum_choice' 
+                    ? String(Math.pow(2, optIndex)).padStart(2, '0') 
+                    : String.fromCharCode(65 + optIndex);
 
                 return (
                   <div 

@@ -9,6 +9,7 @@ export function EditQuestionClient({ id, defaultValues }: { id: number, defaultV
 
   const handleSubmit = async (data: QuestionFormValues) => {
     const payload = {
+        type: data.type,
         enunciado: data.enunciado,
         correctOptionId: data.correctOptionId,
         options: data.options.map(opt => ({ id: opt.uid, text: opt.text }))

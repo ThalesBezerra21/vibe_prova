@@ -9,6 +9,7 @@ export async function createProva(formData: {
   description: string;
   questions: {
     id?: number; // optional logic for re-use
+    type?: 'single_choice' | 'multiple_choice' | 'sum_choice';
     enunciado: string;
     options: { id: string; text: string }[];
     correctOptionId: string;
@@ -53,6 +54,7 @@ export async function updateProva(provaId: number, formData: {
   description: string;
   questions: {
     id?: number;
+    type?: 'single_choice' | 'multiple_choice' | 'sum_choice';
     enunciado: string;
     options: { id: string; text: string }[];
     correctOptionId: string;
@@ -111,7 +113,8 @@ export async function deleteProva(provaId: number) {
 }
 
 export async function createQuestion(formData: {
-  enunciado: string;
+  type?: 'single_choice' | 'multiple_choice' | 'sum_choice';
+    enunciado: string;
   options: { id: string; text: string }[];
   correctOptionId: string;
 }) {
@@ -121,7 +124,8 @@ export async function createQuestion(formData: {
 }
 
 export async function updateQuestion(id: number, formData: {
-  enunciado: string;
+  type?: 'single_choice' | 'multiple_choice' | 'sum_choice';
+    enunciado: string;
   options: { id: string; text: string }[];
   correctOptionId: string;
 }) {
@@ -153,6 +157,7 @@ export async function getQuestions() {
     }
     return {
       id: q.id,
+      type: q.type,
       enunciado: q.enunciado,
       options: parsedOptions,
       correctOptionId: q.correctOptionId
