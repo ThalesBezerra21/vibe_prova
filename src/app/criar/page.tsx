@@ -4,28 +4,37 @@ import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { createProva } from "../actions";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { Plus, Trash2, Save, X } from "lucide-react";
+import { Plus, Trash2, Save, X, AlertCircle } from "lucide-react";
 
 type FormValues = {
   title: string;
   description: string;
   questions: {
     enunciado: string;
-    options: { id: string; text: string }[];
+    options: { uid: string; text: string }[];
     correctOptionId: string;
   }[];
 };
 
 const generateId = () => Math.random().toString(36).substring(2, 9);
 
-function QuestionField({ questionIndex, control, register, errors, removeQuestion }: any) {
+function QuestionField({ questionIndex, control, register, errors, removeQuestion, clearErrors }: any) {
   const { fields: options, append: appendOption, remove: removeOption } = useFieldArray({
     control,
     name: `questions.${questionIndex}.options`,
   });
 
+  const questionError = errors?.questions?.[questionIndex]?.root?.message;
+
+  const handleInputChange = () => {
+    // Clear root errors when the user types or interacts, to avoid locking the form
+    if (questionError) {
+      clearErrors(`questions.${questionIndex}.root`);
+    }
+  };
+
   return (
-    <div className="p-6 border rounded-lg bg-card text-card-foreground relative space-y-4 shadow-sm">
+    <div className={`p-6 border rounded-lg bg-card text-card-foreground relative space-y-4 shadow-sm transition-colors ${questionError ? "border-destructive/50" : ""}`}>
       <div className="flex justify-between items-center">
         <h3 className="font-medium">Questão {questionIndex + 1}</h3>
         <button 
@@ -37,10 +46,21 @@ function QuestionField({ questionIndex, control, register, errors, removeQuestio
         </button>
       </div>
 
+      {questionError && (
+        <div className="flex items-center text-sm font-medium text-destructive bg-destructive/10 p-3 rounded-md">
+          <AlertCircle className="w-4 h-4 mr-2" />
+          {questionError}
+        </div>
+      )}
+
       <div>
         <label className="text-sm font-medium">Enunciado *</label>
         <textarea 
-          {...register(`questions.${questionIndex}.enunciado`, { required: "Enunciado é obrigatório" })} 
+          {...register(`questions.${questionIndex}.enunciado`, { required: "Enunciado é obrigatório" })}
+          onChange={(e) => {
+            register(`questions.${questionIndex}.enunciado`).onChange(e);
+            handleInputChange();
+          }}
           className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1"
           placeholder="Qual é a capital do Brasil?"
         />
@@ -48,35 +68,47 @@ function QuestionField({ questionIndex, control, register, errors, removeQuestio
       </div>
 
       <div className="space-y-3">
-        <label className="text-sm font-medium">Alternativas * (Mín. 2)</label>
-        {options.map((option, optIndex) => (
+        <label className="text-sm font-medium">Alternativas * (Mín. 2 preenchidas)</label>
+        {options.map((option: any, optIndex) => (
           <div key={option.id} className="flex items-center gap-2">
             <Controller
               name={`questions.${questionIndex}.correctOptionId`}
               control={control}
-              rules={{ required: "Selecione a alternativa correta" }}
               render={({ field }) => (
                 <input 
                   type="radio" 
-                  value={option.id}
-                  checked={field.value === option.id}
-                  onChange={() => field.onChange(option.id)}
+                  value={option.uid}
+                  checked={field.value === option.uid}
+                  onChange={() => {
+                    field.onChange(option.uid);
+                    handleInputChange();
+                    if (errors?.questions?.[questionIndex]?.correctOptionId) {
+                      clearErrors(`questions.${questionIndex}.correctOptionId`);
+                    }
+                  }}
                   className="w-4 h-4 text-primary focus:ring-primary"
                 />
               )}
             />
-            <div className="flex-1">
+            <div className="flex-1 relative">
               <input 
-                {...register(`questions.${questionIndex}.options.${optIndex}.text`, { required: "Texto da alternativa é obrigatório" })} 
+                {...register(`questions.${questionIndex}.options.${optIndex}.text`)}
+                onChange={(e) => {
+                  register(`questions.${questionIndex}.options.${optIndex}.text`).onChange(e);
+                  handleInputChange();
+                }}
                 className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 placeholder={`Alternativa ${optIndex + 1}`}
               />
-              <input type="hidden" {...register(`questions.${questionIndex}.options.${optIndex}.id`)} />
+              <input type="hidden" {...register(`questions.${questionIndex}.options.${optIndex}.uid`)} defaultValue={option.uid} />
             </div>
             {options.length > 2 && (
               <button 
                 type="button" 
-                onClick={() => removeOption(optIndex)}
+                onClick={() => {
+                  removeOption(optIndex);
+                  handleInputChange();
+                }}
                 className="text-muted-foreground hover:text-destructive p-2 rounded-md transition-colors"
                 title="Remover alternativa"
               >
@@ -86,12 +118,18 @@ function QuestionField({ questionIndex, control, register, errors, removeQuestio
           </div>
         ))}
         {errors?.questions?.[questionIndex]?.correctOptionId && (
-            <span className="block text-destructive text-sm mt-1">{errors.questions[questionIndex].correctOptionId.message}</span>
+            <span className="flex items-center text-destructive text-sm mt-1 font-medium">
+              <AlertCircle className="w-3.5 h-3.5 mr-1" />
+              {errors.questions[questionIndex].correctOptionId.message}
+            </span>
         )}
         
         <button
           type="button"
-          onClick={() => appendOption({ id: generateId(), text: "" })}
+          onClick={() => {
+            appendOption({ uid: generateId(), text: "" });
+            handleInputChange();
+          }}
           className="text-sm text-primary hover:underline font-medium inline-flex items-center"
         >
           <Plus className="w-3 h-3 mr-1" /> Adicionar Alternativa
@@ -105,7 +143,7 @@ export default function CriarProva() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  const { register, control, handleSubmit, formState: { errors } } = useForm<FormValues>({
+  const { register, control, handleSubmit, setError, clearErrors, formState: { errors } } = useForm<FormValues>({
     defaultValues: {
       title: "",
       description: "",
@@ -113,10 +151,10 @@ export default function CriarProva() {
         { 
           enunciado: "", 
           options: [
-            { id: "opt-1", text: "" },
-            { id: "opt-2", text: "" },
+            { uid: "opt-1", text: "" },
+            { uid: "opt-2", text: "" },
           ],
-          correctOptionId: "opt-1",
+          correctOptionId: "",
         }
       ]
     }
@@ -128,9 +166,51 @@ export default function CriarProva() {
   });
 
   const onSubmit = (data: FormValues) => {
+    let hasError = false;
+    clearErrors(); // Limpa erros antigos globalmente na tentativa
+
+    const cleanedQuestions = data.questions.map((q, qIndex) => {
+      const filledOptions = q.options.filter((opt) => opt.text && opt.text.trim() !== "");
+
+      if (filledOptions.length < 2) {
+        setError(`questions.${qIndex}.root` as any, { 
+          type: "manual", 
+          message: "Preencha o texto de pelo menos 2 alternativas." 
+        });
+        hasError = true;
+      }
+
+      if (!q.correctOptionId) {
+        setError(`questions.${qIndex}.correctOptionId`, { 
+          type: "manual", 
+          message: "Selecione qual é a alternativa correta marcando a bolinha." 
+        });
+        hasError = true;
+      } else {
+        const selectedOpt = q.options.find(o => o.uid === q.correctOptionId);
+        if (!selectedOpt || !selectedOpt.text || selectedOpt.text.trim() === "") {
+          setError(`questions.${qIndex}.correctOptionId`, { 
+            type: "manual", 
+            message: "A alternativa selecionada como correta não pode estar em branco." 
+          });
+          hasError = true;
+        }
+      }
+
+      return {
+        ...q,
+        options: filledOptions.map(opt => ({ id: opt.uid, text: opt.text })), // Transforma o uid interno em id para o db
+      };
+    });
+
+    if (hasError) return;
+
+    // Removeamos a antiga estrutura tipada com uid e passamos ao DB do formato esperado
+    const cleanedData = { ...data, questions: cleanedQuestions } as any;
+
     startTransition(async () => {
       try {
-        await createProva(data);
+        await createProva(cleanedData);
         router.push("/provas");
       } catch (error) {
         console.error(error);
@@ -179,6 +259,7 @@ export default function CriarProva() {
               register={register}
               errors={errors}
               removeQuestion={remove}
+              clearErrors={clearErrors}
             />
           ))}
 
@@ -189,8 +270,8 @@ export default function CriarProva() {
               const opt2 = generateId();
               append({ 
                 enunciado: "", 
-                options: [{ id: opt1, text: "" }, { id: opt2, text: "" }],
-                correctOptionId: opt1
+                options: [{ uid: opt1, text: "" }, { uid: opt2, text: "" }],
+                correctOptionId: ""
               });
             }}
             className="w-full flex items-center justify-center p-4 border-2 border-dashed rounded-lg text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
