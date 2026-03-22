@@ -9,11 +9,8 @@ export async function createProva(formData: {
   description: string;
   questions: {
     enunciado: string;
-    optionA: string;
-    optionB: string;
-    optionC: string;
-    optionD: string;
-    correctOption: string;
+    options: { id: string; text: string }[];
+    correctOptionId: string;
   }[];
 }) {
   const result = await db.insert(provas).values({

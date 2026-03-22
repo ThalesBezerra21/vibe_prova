@@ -11,9 +11,6 @@ export const questions = sqliteTable('questions', {
   id: integer('id', { mode: 'number' }).primaryKey({ autoIncrement: true }),
   provaId: integer('prova_id').notNull().references(() => provas.id, { onDelete: 'cascade' }),
   enunciado: text('enunciado').notNull(),
-  optionA: text('option_a').notNull(),
-  optionB: text('option_b').notNull(),
-  optionC: text('option_c').notNull(),
-  optionD: text('option_d').notNull(),
-  correctOption: text('correct_option').notNull(),
+  options: text('options', { mode: 'json' }).$type<{ id: string, text: string }[]>().notNull(),
+  correctOptionId: text('correct_option_id').notNull(),
 });

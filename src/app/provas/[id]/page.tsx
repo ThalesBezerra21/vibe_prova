@@ -56,16 +56,17 @@ export default async function ProvaDetailsPage({ params }: { params: Promise<{ i
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {(["A", "B", "C", "D"] as const).map((letter) => {
-                const optKey = `option${letter}` as keyof typeof q;
-                const isCorrect = q.correctOption === `option${letter}`;
+              {q.options.map((opt, optIndex) => {
+                const isCorrect = q.correctOptionId === opt.id;
+                // Get letter like A, B, C, etc.
+                const letter = String.fromCharCode(65 + optIndex);
 
                 return (
                   <div 
-                    key={letter}
+                    key={opt.id}
                     className={`relative flex items-start space-x-3 p-4 rounded-lg border-2 transition-all ${
                       isCorrect 
-                        ? "border-green-500 bg-green-500/10 dark:bg-green-500/5 text-green-900 dark:text-green-100" 
+                        ? "border-green-500 bg-green-500/10 text-green-900" 
                         : "border-muted bg-background hover:bg-muted/50 text-foreground"
                     }`}
                   >
@@ -73,7 +74,7 @@ export default async function ProvaDetailsPage({ params }: { params: Promise<{ i
                       {letter}
                     </div>
                     <div className="flex-1 text-sm font-medium leading-none self-center">
-                      {q[optKey]}
+                      {opt.text}
                     </div>
                     {isCorrect && (
                       <CheckCircle2 className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-green-500" />
@@ -81,12 +82,6 @@ export default async function ProvaDetailsPage({ params }: { params: Promise<{ i
                   </div>
                 );
               })}
-            </div>
-            <div className="mt-8 pt-4 border-t flex items-center text-sm">
-              <span className="font-semibold text-green-600 dark:text-green-400 flex items-center">
-                <CheckCircle2 className="w-4 h-4 mr-2" />
-                Alternativa Correta: {q.correctOption.replace("option", "Alternativa ")}
-              </span>
             </div>
           </div>
         ))}
