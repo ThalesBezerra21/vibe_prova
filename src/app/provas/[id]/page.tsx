@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, CheckCircle2, Pencil } from "lucide-react";
+import { PDFGenerator } from "@/components/PDFGenerator";
 
 export default async function ProvaDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -56,6 +57,12 @@ export default async function ProvaDetailsPage({ params }: { params: Promise<{ i
             <Pencil className="mr-2 h-4 w-4" />
             Editar Prova
           </Link>
+          <PDFGenerator 
+            provaData={{
+              title: prova.title,
+              questions: provaQuestionsList
+            }}
+          />
           <div className="flex items-center text-sm text-muted-foreground">
           Criada em {new Date(prova.createdAt).toLocaleDateString("pt-BR")}
           <span className="mx-2">•</span>
