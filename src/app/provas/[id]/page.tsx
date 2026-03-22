@@ -3,7 +3,7 @@ import { provas, questions, provaQuestions } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, CheckCircle2, Pencil } from "lucide-react";
+import { ChevronLeft, CheckCircle2, Pencil, BarChart } from "lucide-react";
 import { PDFGenerator } from "@/components/PDFGenerator";
 
 export default async function ProvaDetailsPage({ params }: { params: Promise<{ id: string }> }) {
@@ -63,6 +63,13 @@ export default async function ProvaDetailsPage({ params }: { params: Promise<{ i
               questions: provaQuestionsList
             }}
           />
+          <Link
+            href={`/provas/${prova.id}/correcao`}
+            className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
+          >
+            <BarChart className="mr-2 h-4 w-4" />
+            Corrigir Provas
+          </Link>
           <div className="flex items-center text-sm text-muted-foreground">
           Criada em {new Date(prova.createdAt).toLocaleDateString("pt-BR")}
           <span className="mx-2">•</span>
