@@ -29,6 +29,7 @@ export async function createProva(formData: {
     if (!questionId) {
       // Create new question
       const qResult = await db.insert(questions).values({
+        type: q.type,
         enunciado: q.enunciado,
         options: q.options,
         correctOptionId: q.correctOptionId,
@@ -77,6 +78,7 @@ export async function updateProva(provaId: number, formData: {
 
     if (!questionId) {
       const qResult = await db.insert(questions).values({
+        type: q.type,
         enunciado: q.enunciado,
         options: q.options,
         correctOptionId: q.correctOptionId,
@@ -86,6 +88,7 @@ export async function updateProva(provaId: number, formData: {
       // Potentially update the question if edited from the form
       // Since "cada questão salva individualmente", we can update it.
       await db.update(questions).set({
+        type: q.type,
         enunciado: q.enunciado,
         options: q.options,
         correctOptionId: q.correctOptionId,
