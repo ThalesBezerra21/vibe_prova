@@ -4,6 +4,8 @@ import { desc } from "drizzle-orm";
 import Link from "next/link";
 import { Clock, PlusCircle } from "lucide-react";
 
+import { DeleteButton } from "./delete-button";
+
 export default async function ProvasPage() {
   const savedProvas = await db.select().from(provas).orderBy(desc(provas.createdAt));
 
@@ -48,9 +50,14 @@ export default async function ProvasPage() {
                     {prova.description || "Sem descrição"}
                   </p>
                 </div>
-                <div className="px-6 py-4 border-t bg-muted/20 flex items-center text-xs text-muted-foreground">
-                  <Clock className="w-3 h-3 mr-1" />
-                  Criada em {new Date(prova.createdAt).toLocaleDateString("pt-BR")}
+                <div className="px-6 py-4 border-t bg-muted/20 flex items-center justify-between text-xs text-muted-foreground">
+                  <div className="flex items-center">
+                    <Clock className="w-3 h-3 mr-1" />
+                    Criada em {new Date(prova.createdAt).toLocaleDateString("pt-BR")}
+                  </div>
+                  <div className="relative z-10">
+                    <DeleteButton provaId={prova.id} provaTitle={prova.title} />
+                  </div>
                 </div>
               </div>
             </Link>

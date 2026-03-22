@@ -32,3 +32,10 @@ export async function createProva(formData: {
   revalidatePath("/provas");
   return { success: true, provaId };
 }
+
+export async function deleteProva(provaId: number) {
+  const { eq } = await import("drizzle-orm");
+  await db.delete(provas).where(eq(provas.id, provaId));
+  revalidatePath("/provas");
+  return { success: true };
+}
