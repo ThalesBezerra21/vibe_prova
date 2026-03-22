@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { provas, questions } from "@/db/schema";
+import { provas, questions, provaQuestions } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { EditProvaClient } from "./EditProvaClient";
@@ -25,12 +25,18 @@ export default async function EditarProva({ params }: { params: Promise<{ id: st
 
   const prova = result[0];
 
-  const provaQuestions = await db
-    .select()
+  const provaQuestionsList = await db
+    .select({
+      id: questions.id,
+      enunciado: questions.enunciado,
+      options: questions.options,
+      correctOptionId: questions.correctOptionId,
+    })
     .from(questions)
-    .where(eq(questions.provaId, id));
+    .innerJoin(provaQuestions, eq(questions.id, provaQuestions.questionId))
+    .where(eq(provaQuestions.provaId, prova.id));
 
-  const parsedQuestions = provaQuestions.map((q) => {
+  const parsedQuestions = provaQuestionsList.map((q) => {
     let parsedOptions: { id: string; text: string }[] = [];
     if (typeof q.options === 'string') {
         try { parsedOptions = JSON.parse(q.options) } catch(e){}

@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { provas, questions } from "@/db/schema";
+import { provas, questions, provaQuestions } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -21,9 +21,16 @@ export default async function ProvaDetailsPage({ params }: { params: Promise<{ i
     notFound();
   }
 
-  const provaQuestions = await db.query.questions.findMany({
-    where: eq(questions.provaId, prova.id),
-  });
+  const provaQuestionsList = await db
+    .select({
+      id: questions.id,
+      enunciado: questions.enunciado,
+      options: questions.options,
+      correctOptionId: questions.correctOptionId,
+    })
+    .from(questions)
+    .innerJoin(provaQuestions, eq(questions.id, provaQuestions.questionId))
+    .where(eq(provaQuestions.provaId, prova.id));
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-12">
@@ -51,13 +58,13 @@ export default async function ProvaDetailsPage({ params }: { params: Promise<{ i
           <div className="flex items-center text-sm text-muted-foreground">
           Criada em {new Date(prova.createdAt).toLocaleDateString("pt-BR")}
           <span className="mx-2">•</span>
-          {provaQuestions.length} {provaQuestions.length === 1 ? 'questão' : 'questões'}
+          {provaQuestionsList.length} {provaQuestionsList.length === 1 ? 'questão' : 'questões'}
           </div>
         </div>
       </div>
 
       <div className="space-y-12">
-        {provaQuestions.map((q, index) => (
+        {provaQuestionsList.map((q, index) => (
           <div key={q.id} className="p-8 border rounded-xl bg-card text-card-foreground shadow-sm">
             <h3 className="text-2xl font-semibold mb-6">
               <span className="text-primary mr-2">{index + 1}.</span> 
@@ -67,7 +74,6 @@ export default async function ProvaDetailsPage({ params }: { params: Promise<{ i
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {q.options.map((opt, optIndex) => {
                 const isCorrect = q.correctOptionId === opt.id;
-                // Get letter like A, B, C, etc.
                 const letter = String.fromCharCode(65 + optIndex);
 
                 return (

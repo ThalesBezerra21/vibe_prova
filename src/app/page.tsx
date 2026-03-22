@@ -16,6 +16,9 @@ export default function Home() {
         <Link href="/provas" className="h-10 px-8 inline-flex items-center justify-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium transition-colors">
           Ver Provas Salvas
         </Link>
+        <Link href="/questoes" className="h-10 px-8 inline-flex items-center justify-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium transition-colors">
+          Ver Questões Salvas
+        </Link>
       </div>
     </div>
   );

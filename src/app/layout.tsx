@@ -30,7 +30,8 @@ export default function RootLayout({
           <Link href="/" className="font-bold text-xl mr-auto tracking-tight">Vibe Prova</Link>
           <nav className="flex items-center gap-2">
             <Link href="/" className="px-3 py-2 text-sm font-medium hover:bg-accent rounded-md">Início</Link>
-            <Link href="/provas" className="px-3 py-2 text-sm font-medium hover:bg-accent rounded-md">Ver Provas</Link>
+            <Link href="/questoes" className="px-3 py-2 text-sm font-medium hover:bg-accent rounded-md">Questões</Link>
+            <Link href="/provas" className="px-3 py-2 text-sm font-medium hover:bg-accent rounded-md">Provas</Link>
             <Link href="/criar" className="px-3 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/95 rounded-md">Criar Prova</Link>
           </nav>
         </header>

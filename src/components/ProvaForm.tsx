@@ -2,6 +2,8 @@
 
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { useTransition } from "react";
+import { BookmarkPlus } from "lucide-react";
+import { QuestionPicker } from "./QuestionPicker";
 import { Plus, Trash2, Save, X, AlertCircle } from "lucide-react";
 
 export type FormValues = {
@@ -271,22 +273,25 @@ export function ProvaForm({
             />
           ))}
 
-          <button
-            type="button"
-            onClick={() => {
-              const opt1 = generateId();
-              const opt2 = generateId();
-              append({ 
-                enunciado: "", 
-                options: [{ uid: opt1, text: "" }, { uid: opt2, text: "" }],
-                correctOptionId: ""
-              });
-            }}
-            className="w-full flex items-center justify-center p-4 border-2 border-dashed rounded-lg text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Adicionar Questão
-          </button>
+          <div className="flex gap-4">
+            <button 
+              type="button" 
+              onClick={() => {
+                const opt1 = generateId();
+                const opt2 = generateId();
+                append({ 
+                  enunciado: "", 
+                  options: [{ uid: opt1, text: "" }, { uid: opt2, text: "" }],
+                  correctOptionId: ""
+                });
+              }}
+              className="flex-1 flex items-center justify-center p-4 border-2 border-dashed rounded-lg text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Adicionar Questão Manual
+            </button>
+            <QuestionPicker onSelect={(q) => append(q)} />
+          </div>
         </div>
 
         <div className="flex justify-end p-4 bg-background/95 backdrop-blur border-t sticky bottom-0 -mx-4 md:rounded-b-lg z-20">
