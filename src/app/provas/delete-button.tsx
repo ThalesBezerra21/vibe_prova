@@ -54,7 +54,7 @@ export function DeleteButton({ provaId, provaTitle }: { provaId: number, provaTi
               e.stopPropagation();
               handleDelete();
             }}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            className="bg-destructive text-white hover:bg-destructive/90 cursor-pointer"
           >
             {isPending ? "Excluindo..." : "Sim, excluir prova"}
           </AlertDialogAction>
