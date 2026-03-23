@@ -14,7 +14,6 @@ export default function CorrecaoPage() {
   const [gabaritoFile, setGabaritoFile] = useState<File | null>(null);
   const [respostasFile, setRespostasFile] = useState<File | null>(null);
   const [rigor, setRigor] = useState<"strict" | "partial">("strict");
-  const [optionsCount, setOptionsCount] = useState<number>(5);
   
   const [report, setReport] = useState<any[]>([]);
 
@@ -103,7 +102,7 @@ export default function CorrecaoPage() {
           const pAns = (alunoRow[key] || "").toString().trim();
 
           // Calculate correct decisions
-          const score = calculateScore(gabAns, pAns, optionsCount, rigor);
+          const score = calculateScore(gabAns, pAns, rigor);
           totalScore += score;
         }
       }
@@ -143,7 +142,7 @@ export default function CorrecaoPage() {
     return set;
   };
 
-  const calculateScore = (gabaritoStr: string, respStr: string, N: number, mode: "strict" | "partial") => {
+  const calculateScore = (gabaritoStr: string, respStr: string, mode: "strict" | "partial") => {
     const isSum = /^\d+$/.test(gabaritoStr);
 
     let gSet: Set<number>;
@@ -157,6 +156,8 @@ export default function CorrecaoPage() {
         rSet = parseLetters(respStr);
     }
 
+    if (gSet.size === 0) return 0;
+
     if (mode === "strict") {
         // Must match exactly
         if (gSet.size !== rSet.size) return 0;
@@ -167,14 +168,18 @@ export default function CorrecaoPage() {
     } else {
         // Partial (proportional)
         let correctDecisions = 0;
-        for (let i = 0; i < N; i++) {
-            const expectTrue = gSet.has(i);
-            const actualTrue = rSet.has(i);
-            if (expectTrue === actualTrue) {
+        let incorrectDecisions = 0;
+        for (const ans of rSet) {
+            if (gSet.has(ans)) {
                 correctDecisions++;
+            } else {
+                incorrectDecisions++;
             }
         }
-        return correctDecisions / N;
+        
+        // Evitar pontuar quem marcou todas as opções, subtraindo os erros, mas limitado a 0 no mínimo
+        const partialScore = (correctDecisions - incorrectDecisions) / gSet.size;
+        return Math.max(0, partialScore);
     }
   };
 
@@ -221,20 +226,6 @@ export default function CorrecaoPage() {
                     <option value="partial">Menos Rigorosa (Nota proporcional aos acertos das alternativas)</option>
                 </select>
             </div>
-            
-            {rigor === 'partial' && (
-                <div>
-                    <Label>Alternativas por questão</Label>
-                    <Input 
-                        type="number" 
-                        min={2}
-                        value={optionsCount} 
-                        onChange={(e) => setOptionsCount(Number(e.target.value))} 
-                        className="mt-2" 
-                    />
-                    <span className="text-xs text-muted-foreground">Necessário para calcular a proporção de alternativas marcadas com precisão.</span>
-                </div>
-            )}
 
             <Button onClick={handleCorrect} className="w-full mt-4 h-10">
               <CheckCircle2 className="mr-2 h-4 w-4" /> Corrigir Provas
