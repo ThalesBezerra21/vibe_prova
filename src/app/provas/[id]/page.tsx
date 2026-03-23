@@ -64,7 +64,7 @@ export default async function ProvaDetailsPage({ params }: { params: Promise<{ i
             }}
           />
           <Link
-            href={`/provas/${prova.id}/correcao`}
+            href={`/correcao`}
             className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
           >
             <BarChart className="mr-2 h-4 w-4" />

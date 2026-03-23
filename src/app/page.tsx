@@ -22,6 +22,9 @@ export default function Home() {
         <Link href="/questoes" className="h-12 px-8 inline-flex w-full sm:w-auto items-center justify-center rounded-lg border-2 border-input bg-background hover:bg-accent hover:text-accent-foreground text-base font-medium shadow-sm transition-all hover:scale-105">
           Ver Questões Salvas
         </Link>
+        <Link href="/correcao" className="h-12 px-8 inline-flex w-full sm:w-auto items-center justify-center rounded-lg border-2 border-input bg-background hover:bg-accent hover:text-accent-foreground text-base font-medium shadow-sm transition-all hover:scale-105">
+          Corrigir provas
+        </Link>
       </div>
     </div>
   );
