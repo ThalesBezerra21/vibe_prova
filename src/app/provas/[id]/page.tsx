@@ -1,12 +1,16 @@
 import { db } from "@/db";
 import { provas, questions, provaQuestions } from "@/db/schema";
-import { eq } from "drizzle-orm";
-import { notFound } from "next/navigation";
+import { eq, and } from "drizzle-orm";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, CheckCircle2, Pencil, BarChart } from "lucide-react";
 import { PDFGenerator } from "@/components/PDFGenerator";
+import { getCurrentUser } from "@/lib/auth";
 
 export default async function ProvaDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/entrar");
+
   const { id } = await params;
   const provaId = parseInt(id, 10);
 
@@ -15,7 +19,7 @@ export default async function ProvaDetailsPage({ params }: { params: Promise<{ i
   }
 
   const prova = await db.query.provas.findFirst({
-    where: eq(provas.id, provaId),
+    where: and(eq(provas.id, provaId), eq(provas.userId, user.id)),
   });
 
   if (!prova) {

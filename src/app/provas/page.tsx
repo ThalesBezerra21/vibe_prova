@@ -1,13 +1,18 @@
 import { db } from "@/db";
 import { provas } from "@/db/schema";
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import Link from "next/link";
 import { Clock, PlusCircle } from "lucide-react";
 
 import { DeleteButton } from "./delete-button";
+import { getCurrentUser } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 export default async function ProvasPage() {
-  const savedProvas = await db.select().from(provas).orderBy(desc(provas.createdAt));
+  const user = await getCurrentUser();
+  if (!user) redirect("/entrar");
+
+  const savedProvas = await db.select().from(provas).where(eq(provas.userId, user.id)).orderBy(desc(provas.createdAt));
 
   return (
     <div className="space-y-8">

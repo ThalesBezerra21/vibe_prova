@@ -1,11 +1,17 @@
 import { db } from "@/db";
 import { questions } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { PlusCircle, Pencil } from "lucide-react";
 import { DeleteQuestionButton } from "./delete-button";
+import { getCurrentUser } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 export default async function QuestoesPage() {
-  const allQuestions = await db.select().from(questions);
+  const user = await getCurrentUser();
+  if (!user) redirect("/entrar");
+
+  const allQuestions = await db.select().from(questions).where(eq(questions.userId, user.id));
 
   return (
     <div className="space-y-8">

@@ -1,7 +1,15 @@
 import { sqliteTable, text, integer, primaryKey } from 'drizzle-orm/sqlite-core';
 
+export const users = sqliteTable('users', {
+  id: integer('id', { mode: 'number' }).primaryKey({ autoIncrement: true }),
+  email: text('email').notNull().unique(),
+  password: text('password').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
 export const provas = sqliteTable('provas', {
   id: integer('id', { mode: 'number' }).primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   title: text('title').notNull(),
   description: text('description'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
@@ -9,6 +17,7 @@ export const provas = sqliteTable('provas', {
 
 export const questions = sqliteTable('questions', {
   id: integer('id', { mode: 'number' }).primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   type: text('type').$type<'single_choice' | 'multiple_choice' | 'sum_choice'>().notNull().default('single_choice'),
   enunciado: text('enunciado').notNull(),
   options: text('options', { mode: 'json' }).$type<{ id: string, text: string }[]>().notNull(),

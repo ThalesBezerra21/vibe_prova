@@ -1,10 +1,14 @@
 import { db } from "@/db";
 import { provas, questions, provaQuestions } from "@/db/schema";
-import { eq } from "drizzle-orm";
-import { notFound } from "next/navigation";
+import { eq, and } from "drizzle-orm";
+import { notFound, redirect } from "next/navigation";
 import { EditProvaClient } from "./EditProvaClient";
+import { getCurrentUser } from "@/lib/auth";
 
 export default async function EditarProva({ params }: { params: Promise<{ id: string }> }) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/entrar");
+
   const resolvedParams = await params;
   const idStr = resolvedParams.id;
   const id = parseInt(idStr, 10);
@@ -16,7 +20,7 @@ export default async function EditarProva({ params }: { params: Promise<{ id: st
   const result = await db
     .select()
     .from(provas)
-    .where(eq(provas.id, id))
+    .where(and(eq(provas.id, id), eq(provas.userId, user.id)))
     .limit(1);
 
   if (result.length === 0) {
