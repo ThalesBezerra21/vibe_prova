@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FileDown, CheckCircle2 } from "lucide-react";
 import { saveAs } from "file-saver";
+import { toast } from "sonner";
 
 export default function CorrecaoPage() {
   const [gabaritoFile, setGabaritoFile] = useState<File | null>(null);
@@ -19,7 +20,7 @@ export default function CorrecaoPage() {
 
   const handleCorrect = async () => {
     if (!gabaritoFile || !respostasFile) {
-      alert("Por favor, selecione ambos os arquivos CSV.");
+      toast.error("Por favor, selecione ambos os arquivos CSV.");
       return;
     }
 
@@ -59,6 +60,7 @@ export default function CorrecaoPage() {
       processCorrections(gabaritoResults.data, respostasResults.data);
     } catch (err) {
       console.error("Erro ao ler ou parsear os arquivos", err);
+      toast.error("Erro inesperado ao ler os arquivos.");
     }
   };
 
@@ -117,6 +119,13 @@ export default function CorrecaoPage() {
     }
     
     console.log("Relatório final gerado:", calculatedReport);
+    
+    if (calculatedReport.length === 0) {
+      toast.error("Nenhuma correção gerada. Verifique se o formato dos arquivos está correto e se compartilham as mesmas provas.");
+    } else {
+      toast.success("Correção de provas realizada com sucesso!");
+    }
+
     setReport(calculatedReport);
   };
 
