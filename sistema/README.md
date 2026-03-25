@@ -30,11 +30,16 @@ Você precisa do [Node.js](https://nodejs.org/) instalado na sua máquina.
    npm install
    ```
 
-3. **Inicie o servidor de desenvolvimento**:
+3. **Inicialize o banco de dados**:
+   ```bash
+   npx drizzle-kit push
+   ```
+
+4. **Inicie o servidor de desenvolvimento**:
    ```bash
    npm run dev
    ```
-4. Navegue até seu navegador em `http://localhost:3000`. O banco SQLite local será dinamicamente providenciado e abastecido em segundo plano.
+5. Navegue até seu navegador em `http://localhost:3000`. O banco SQLite local será dinamicamente providenciado e abastecido em segundo plano.
 
 ---
 
