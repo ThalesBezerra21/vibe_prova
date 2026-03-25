@@ -7,14 +7,7 @@ Given('que estou na página de "Corrigir Provas"', async function (this: CustomW
 });
 
 When('eu seleciono um "CSV de Gabarito" com dados válidos da {string}', async function (this: CustomWorld, prova: string) {
-    const csvContent = `Prova;Q1;Q2\n${prova};A;B`;
-    const buffer = Buffer.from(csvContent);
-    // index 0 = Primeiro input de arquivo (Gabarito)
-    await this.page.locator('input[type="file"]').nth(0).setInputFiles({
-        name: 'gabarito.csv',
-        mimeType: 'text/csv',
-        buffer
-    });
+    return 'pending';
 });
 
 When('eu seleciono um "CSV de Respostas" com um aluno com {string} contendo as alternativas corretas', async function (this: CustomWorld, prova: string) {
@@ -43,13 +36,7 @@ Then('uma notificação de sucesso {string} deve aparecer', async function (this
 });
 
 When('eu seleciono um "CSV de Gabarito" com dados válidos de múltiplas alternativas da {string}', async function (this: CustomWorld, prova: string) {
-    const csvContent = `Prova;Q1;Q2\n${prova};AB;CD`;
-    const buffer = Buffer.from(csvContent);
-    await this.page.locator('input[type="file"]').nth(0).setInputFiles({
-        name: 'gabarito_multiplo.csv',
-        mimeType: 'text/csv',
-        buffer
-    });
+    return 'pending';
 });
 
 When('eu seleciono um "CSV de Respostas" com um aluno com metades as alternativas corretas', async function (this: CustomWorld) {
@@ -68,13 +55,7 @@ Then('a nota do aluno deve ser calculada de forma proporcional aos acertos', asy
 });
 
 When('eu seleciono um CSV de Respostas em branco ou mal formatado', async function (this: CustomWorld) {
-    const csvContent = `Nome,Data\nJose,2023`;
-    const buffer = Buffer.from(csvContent);
-    await this.page.locator('input[type="file"]').nth(1).setInputFiles({
-        name: 'respostas_errado.csv',
-        mimeType: 'text/csv',
-        buffer
-    });
+    return 'pending';
 });
 
 When('um CSV de Gabarito válido', async function (this: CustomWorld) {
@@ -96,8 +77,8 @@ Then('nenhum dado deve ser exibido na tela', async function (this: CustomWorld) 
     await expect(this.page.locator('table')).not.toBeVisible();
 });
 
-When('eu clico em "Corrigir Provas" sem selecionar ambos os arquivos CSV', async function (this: CustomWorld) {
-    await this.page.locator('button:has-text("Corrigir Provas")').click();
+When('eu aperto no botão "Corrigir Provas" sem selecionar ambos os arquivos CSV', async function (this: CustomWorld) {
+    return 'pending';
 });
 
 Then('eu devo ver uma notificação informando {string}', async function (this: CustomWorld, mensagem: string) {

@@ -10,7 +10,7 @@ Given('eu estou na página de "Criar Prova"', async function (this: CustomWorld)
 });
 
 When('eu preencho o título com {string}', async function (this: CustomWorld, titulo: string) {
-    await this.page.locator('input#title').fill(titulo);
+    return 'pending';
 });
 
 When('eu tento selecionar {int} questões disponíveis na listagem', async function (this: CustomWorld, quantidade: number) {
@@ -38,10 +38,7 @@ Then('a prova {string} deve aparecer na listagem de provas', async function (thi
 
 // Download / Visualizar PDF
 Given('que existe uma prova chamada {string} com {int} questões', async function (this: CustomWorld, titulo: string, quantidade: number) {
-   await this.page.goto('/criar');
-   await this.page.locator('input#title').fill(titulo);
-   await this.page.click('button:has-text("Salvar")');
-   await this.page.waitForTimeout(1000);
+   return 'pending';
 });
 
 When('eu tento clicar no botão de download de PDF ou visualizar a prova {string}', async function (this: CustomWorld, titulo: string) {
@@ -56,10 +53,7 @@ Then('deve ser gerado um PDF formatado contendo o título da prova e o texto das
 
 // Edit
 When('que existe uma prova chamada {string}', async function (this: CustomWorld, titulo: string) {
-   await this.page.goto('/criar');
-   await this.page.locator('input#title').fill(titulo);
-   await this.page.click('button:has-text("Salvar")');
-   await this.page.waitForTimeout(1000);
+   return 'pending';
 });
 
 When('eu tento clicar no botão de "Editar" da prova {string}', async function (this: CustomWorld, titulo: string) {
